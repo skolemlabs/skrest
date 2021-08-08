@@ -219,7 +219,8 @@ struct
       (fun uri ->
         let headers = always_close headers in
         let%lwt result = C.head ?ctx ~headers uri in
-        Lwt.return @@ Ok result)
+        Lwt.return @@ Ok result
+        )
       uri
 
   let rec get ?ctx ?headers ~follow uri =
