@@ -92,6 +92,29 @@ let wrap_unix_error ~timeout f x =
     let bt = Printexc.get_raw_backtrace () in
     error_lwt @@ Trapped_exception (exn, bt)
 
+let apm_name ~meth ~uri = Fmt.str "%s: %s" meth (Uri.to_string uri)
+
+let wrap_with_transaction
+    ?(apm : Elastic_apm.Transaction.t option)
+    ~name
+    ~subtype
+    ~action
+    f
+    x =
+  let open Lwt in
+  match apm with
+  | Some t ->
+    let span =
+      Elastic_apm.Span.make_span ~parent:(`Transaction t) ~name
+        ~type_:"Web Request" ~subtype ~action ()
+    in
+    f x >|= fun res ->
+    let (_ : Elastic_apm.Span.result) =
+      Elastic_apm.Span.finalize_and_send span
+    in
+    res
+  | None -> f x
+
 module type Response = sig
   type response
 
@@ -147,6 +170,7 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
+    ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     Cohttp.Response.t result Lwt.t
 
@@ -154,6 +178,7 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
+    ?apm:Elastic_apm.Transaction.t ->
     follow:int ->
     Uri.t ->
     response result Lwt.t
@@ -162,6 +187,7 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
+    ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
 
@@ -170,6 +196,7 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
+    ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
 
@@ -178,6 +205,7 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
+    ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
 
@@ -186,6 +214,7 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
+    ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
 
@@ -193,6 +222,7 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
+    ?apm:Elastic_apm.Transaction.t ->
     params:(string * string list) list ->
     Uri.t ->
     response result Lwt.t
@@ -202,6 +232,7 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
+    ?apm:Elastic_apm.Transaction.t ->
     Cohttp.Code.meth ->
     Uri.t ->
     response result Lwt.t
@@ -214,13 +245,17 @@ struct
   let always_close headers =
     Cohttp.Header.add_opt_unless_exists headers "connection" "close"
 
-  let head ?ctx ?headers ?timeout uri =
+  let head ?ctx ?headers ?timeout ?apm uri =
+    let run uri =
+      let headers = always_close headers in
+      let%lwt result = C.head ?ctx ~headers uri in
+      Lwt.return @@ Ok result
+    in
     wrap_unix_error ~timeout
-      (fun uri ->
-        let headers = always_close headers in
-        let%lwt result = C.head ?ctx ~headers uri in
-        Lwt.return @@ Ok result
-        )
+      (wrap_with_transaction ?apm
+         ~name:(apm_name ~meth:"HEAD" ~uri)
+         ~subtype:"HEAD" ~action:"Ezrest#head" run
+      )
       uri
 
   let rec get ?ctx ?headers ~follow uri =
@@ -243,9 +278,15 @@ struct
       let%lwt body = Cohttp_lwt.Body.to_string body in
       error_lwt (Unhandled_response_code { uri; status; body })
 
-  let get ?ctx ?headers ?timeout ~follow uri =
+  let get ?ctx ?headers ?timeout ?apm ~follow uri =
     let headers = always_close headers in
-    wrap_unix_error ~timeout (get ?ctx ~headers ~follow) uri
+    wrap_unix_error ~timeout
+      (wrap_with_transaction ?apm
+         ~name:(apm_name ~meth:"GET" ~uri)
+         ~subtype:"GET" ~action:"Ezrest#get"
+         (get ?ctx ~headers ~follow)
+      )
+      uri
 
   let delete ?ctx ?headers uri =
     let%lwt (response, body) = C.delete ?ctx ?headers uri in
@@ -255,9 +296,14 @@ struct
       let%lwt body = Cohttp_lwt.Body.to_string body in
       error_lwt (Unhandled_response_code { uri; status; body })
 
-  let delete ?ctx ?headers ?timeout uri =
+  let delete ?ctx ?headers ?timeout ?apm uri =
     let headers = always_close headers in
-    wrap_unix_error ~timeout (delete ?ctx ~headers) uri
+    wrap_unix_error ~timeout
+      (wrap_with_transaction ?apm
+         ~name:(apm_name ~meth:"DELETE" ~uri)
+         ~subtype:"DELETE" ~action:"Ezrest#delete" (delete ?ctx ~headers)
+      )
+      uri
 
   let patch ?ctx ?headers ?body uri =
     let%lwt (response, body) = C.patch ?ctx ?headers ?body uri in
@@ -267,9 +313,15 @@ struct
       let%lwt body = Cohttp_lwt.Body.to_string body in
       error_lwt (Unhandled_response_code { uri; status; body })
 
-  let patch ?ctx ?headers ?timeout ?body uri =
+  let patch ?ctx ?headers ?timeout ?body ?apm uri =
     let headers = always_close headers in
-    wrap_unix_error ~timeout (patch ?ctx ~headers ?body) uri
+    wrap_unix_error ~timeout
+      (wrap_with_transaction ?apm
+         ~name:(apm_name ~meth:"PATCH" ~uri)
+         ~subtype:"PATCH" ~action:"Ezrest#patch"
+         (patch ?ctx ~headers ?body)
+      )
+      uri
 
   let post ?ctx ?headers ?body uri =
     let%lwt (response, body) = C.post ?ctx ?headers ?body uri in
@@ -279,9 +331,14 @@ struct
       let%lwt body = Cohttp_lwt.Body.to_string body in
       error_lwt (Unhandled_response_code { uri; status; body })
 
-  let post ?ctx ?headers ?timeout ?body uri =
+  let post ?ctx ?headers ?timeout ?body ?apm uri =
     let headers = always_close headers in
-    wrap_unix_error ~timeout (post ?ctx ~headers ?body) uri
+    wrap_unix_error ~timeout
+      (wrap_with_transaction ?apm
+         ~name:(apm_name ~meth:"GET" ~uri)
+         ~subtype:"GET" ~action:"Ezrest#post" (post ?ctx ~headers ?body)
+      )
+      uri
 
   let put ?ctx ?headers ?body uri =
     let%lwt (response, body) = C.put ?ctx ?headers ?body uri in
@@ -291,9 +348,14 @@ struct
       let%lwt body = Cohttp_lwt.Body.to_string body in
       error_lwt (Unhandled_response_code { uri; status; body })
 
-  let put ?ctx ?headers ?timeout ?body uri =
+  let put ?ctx ?headers ?timeout ?body ?apm uri =
     let headers = always_close headers in
-    wrap_unix_error ~timeout (put ?ctx ~headers ?body) uri
+    wrap_unix_error ~timeout
+      (wrap_with_transaction ?apm
+         ~name:(apm_name ~meth:"PUT" ~uri)
+         ~subtype:"PUT" ~action:"Ezrest#put" (put ?ctx ~headers ?body)
+      )
+      uri
 
   let post_form ?ctx ?headers ~params uri =
     let%lwt (response, body) = C.post_form ?ctx ?headers ~params uri in
@@ -303,9 +365,15 @@ struct
       let%lwt body = Cohttp_lwt.Body.to_string body in
       error_lwt (Unhandled_response_code { uri; status; body })
 
-  let post_form ?ctx ?headers ?timeout ~params uri =
+  let post_form ?ctx ?headers ?timeout ?apm ~params uri =
     let headers = always_close headers in
-    wrap_unix_error ~timeout (post_form ?ctx ~headers ~params) uri
+    wrap_unix_error ~timeout
+      (wrap_with_transaction ?apm
+         ~name:(apm_name ~meth:"POST" ~uri)
+         ~subtype:"POST" ~action:"Ezrest#post_form"
+         (post_form ?ctx ~headers ~params)
+      )
+      uri
 
   let call ?ctx ?headers ?body meth uri =
     let%lwt (response, body) = C.call ?ctx ?headers ?body meth uri in
@@ -315,9 +383,16 @@ struct
       let%lwt body = Cohttp_lwt.Body.to_string body in
       error_lwt (Unhandled_response_code { uri; status; body })
 
-  let call ?ctx ?headers ?timeout ?body meth uri =
+  let call ?ctx ?headers ?timeout ?body ?apm meth uri =
+    let meth_str = Cohttp.Code.string_of_method meth in
     let headers = always_close headers in
-    wrap_unix_error ~timeout (call ?ctx ~headers ?body meth) uri
+    wrap_unix_error ~timeout
+      (wrap_with_transaction ?apm
+         ~name:(apm_name ~meth:meth_str ~uri)
+         ~subtype:meth_str ~action:"Ezrest#call"
+         (call ?ctx ~headers ?body meth)
+      )
+      uri
 end
 
 module String_response_body = Make (String_t_response)
