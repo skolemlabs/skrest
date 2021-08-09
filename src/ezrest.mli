@@ -50,6 +50,7 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
+    ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     Cohttp.Response.t result Lwt.t
   (** [head ?ctx ?headers uri] returns the result of a [HEAD] request to [uri]. *)
@@ -58,6 +59,7 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
+    ?apm:Elastic_apm.Transaction.t ->
     follow:int ->
     Uri.t ->
     response result Lwt.t
@@ -70,6 +72,7 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
+    ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
   (** [delete ?ctx ?headers ~follow uri] returns the result of a [DELETE]
@@ -80,6 +83,7 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
+    ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
   (** [post ?ctx ?headers ?body uri] returns the result of a [PATCH] request to
@@ -92,10 +96,11 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
+    ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
-  (** [post ?ctx ?headers ?body uri] returns the result of a [POST] request to
-      [uri].
+  (** [post ?ctx ?headers ?body uri] returns the result of a [POST] request
+      to [uri].
 
       @param body is the [POST] body to use. There is no body by default. *)
 
@@ -104,10 +109,11 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
+    ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
-  (** [put ?ctx ?headers ?body uri] returns the result of a [PUT] request to
-      [uri].
+  (** [put ?ctx ?headers ?body uri] returns the result of a [PUT] request
+      to [uri].
 
       @param body is the [PUT] body to use. There is no body by default. *)
 
@@ -115,11 +121,12 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
+    ?apm:Elastic_apm.Transaction.t ->
     params:(string * string list) list ->
     Uri.t ->
     response result Lwt.t
-  (** [post_form ?ctx ?headers ~params uri] returns the result of a form [POST]
-      request to [uri].
+  (** [post_form ?ctx ?headers ~params uri] returns the result of a form
+      [POST] request to [uri].
 
       @param params specifies a list of [(key, value)] pairs which represent the
       form elements to send. *)
@@ -129,12 +136,13 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
+    ?apm:Elastic_apm.Transaction.t ->
     Cohttp.Code.meth ->
     Uri.t ->
     response result Lwt.t
-  (** [call ?ctx ?headers ?timeout ?body meth uri] makes a [meth] call to [uri].
-      It is a more generic version of the other functions in this module. The
-      more specific functions like {!get} and {!post} should be used when
+  (** [call ?ctx ?headers ?timeout ?body meth uri] makes a [meth] call to
+      [uri]. It is a more generic version of the other functions in this module.
+      The more specific functions like {!get} and {!post} should be used when
       possible.
 
       @param body is the request body to send. There is no body by default. *)
