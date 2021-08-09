@@ -99,7 +99,7 @@ module type S = sig
     ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
-  (** [post ?ctx ?headers ?body ?apm uri] returns the result of a [POST] request
+  (** [post ?ctx ?headers ?body uri] returns the result of a [POST] request
       to [uri].
 
       @param body is the [POST] body to use. There is no body by default. *)
@@ -112,7 +112,7 @@ module type S = sig
     ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
-  (** [put ?ctx ?headers ?body ?apm uri] returns the result of a [PUT] request
+  (** [put ?ctx ?headers ?body uri] returns the result of a [PUT] request
       to [uri].
 
       @param body is the [PUT] body to use. There is no body by default. *)
@@ -125,7 +125,7 @@ module type S = sig
     params:(string * string list) list ->
     Uri.t ->
     response result Lwt.t
-  (** [post_form ?ctx ?headers ?apm ~params uri] returns the result of a form
+  (** [post_form ?ctx ?headers ~params uri] returns the result of a form
       [POST] request to [uri].
 
       @param params specifies a list of [(key, value)] pairs which represent the
@@ -140,7 +140,7 @@ module type S = sig
     Cohttp.Code.meth ->
     Uri.t ->
     response result Lwt.t
-  (** [call ?ctx ?headers ?timeout ?body ?apm meth uri] makes a [meth] call to
+  (** [call ?ctx ?headers ?timeout ?body meth uri] makes a [meth] call to
       [uri]. It is a more generic version of the other functions in this module.
       The more specific functions like {!get} and {!post} should be used when
       possible.
