@@ -99,8 +99,8 @@ module type S = sig
     ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
-  (** [post ?ctx ?headers ?body uri] returns the result of a [POST] request
-      to [uri].
+  (** [post ?ctx ?headers ?body uri] returns the result of a [POST] request to
+      [uri].
 
       @param body is the [POST] body to use. There is no body by default. *)
 
@@ -112,8 +112,8 @@ module type S = sig
     ?apm:Elastic_apm.Transaction.t ->
     Uri.t ->
     response result Lwt.t
-  (** [put ?ctx ?headers ?body uri] returns the result of a [PUT] request
-      to [uri].
+  (** [put ?ctx ?headers ?body uri] returns the result of a [PUT] request to
+      [uri].
 
       @param body is the [PUT] body to use. There is no body by default. *)
 
@@ -125,8 +125,8 @@ module type S = sig
     params:(string * string list) list ->
     Uri.t ->
     response result Lwt.t
-  (** [post_form ?ctx ?headers ~params uri] returns the result of a form
-      [POST] request to [uri].
+  (** [post_form ?ctx ?headers ~params uri] returns the result of a form [POST]
+      request to [uri].
 
       @param params specifies a list of [(key, value)] pairs which represent the
       form elements to send. *)
@@ -140,12 +140,24 @@ module type S = sig
     Cohttp.Code.meth ->
     Uri.t ->
     response result Lwt.t
-  (** [call ?ctx ?headers ?timeout ?body meth uri] makes a [meth] call to
-      [uri]. It is a more generic version of the other functions in this module.
-      The more specific functions like {!get} and {!post} should be used when
+  (** [call ?ctx ?headers ?timeout ?body meth uri] makes a [meth] call to [uri].
+      It is a more generic version of the other functions in this module. The
+      more specific functions like {!get} and {!post} should be used when
       possible.
 
       @param body is the request body to send. There is no body by default. *)
+
+  val retry :
+    ?wait:float ->
+    retries:int ->
+    Uri.t ->
+    (Uri.t -> response result Lwt.t) ->
+    unit ->
+    response result Lwt.t
+  (** [retry ?wait ~retries uri f] retries [f] up to [retry] times. If [f]
+      returns [Error(_)], the thread sleeps for [wait], then it is called again
+      unless the number of times that [f] has been tried is equal to [retries].
+      If [f] returns [Ok(_)], the value is returned. *)
 end
 
 module String_response_body : S with type response = string t
