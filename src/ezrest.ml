@@ -43,9 +43,9 @@ let open_error = function
   | Ok _ as o -> o
   | Error (`Ezrest _) as e -> e
 
-let error_to_msg : 'a result -> ('a, R.msg) Stdlib.result = function
+let error_to_msg : 'a result -> ('a, [> `Msg of string ]) Stdlib.result = function
   | Ok _ as o -> o
-  | Error err -> R.error_msg (Fmt.strf "%a" pp_error err)
+  | Error err -> Error (`Msg (Fmt.strf "%a" pp_error err))
 
 type 'body body =
   | Consume : string body

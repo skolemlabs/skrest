@@ -171,4 +171,4 @@ include S with type response = string
 
 val pp_error : Format.formatter -> [ `Ezrest of error ] -> unit
 val open_error : 'a result -> ('a, [> `Ezrest of error ]) Stdlib.result
-val error_to_msg : 'a result -> ('a, [ `Msg of string ]) Stdlib.result
+val error_to_msg : 'a result -> ('a, [> `Msg of string ]) Stdlib.result
