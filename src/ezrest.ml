@@ -246,6 +246,14 @@ module type S = sig
     Cohttp.Code.meth ->
     Uri.t ->
     response result Lwt.t
+
+  val retry :
+    ?wait:float ->
+    retries:int ->
+    Uri.t ->
+    (Uri.t -> response result Lwt.t) ->
+    unit ->
+    response result Lwt.t
 end
 
 module Make (Response : Response) : S with type response = Response.response =
@@ -403,6 +411,18 @@ struct
          (call ?ctx ~headers ?body meth)
       )
       uri
+
+  let retry ?wait:(wait_period = 0.) ~retries uri f () =
+    let open Lwt in
+    let rec helper retry =
+      if retry = retries then
+        f uri
+      else
+        f uri >>= function
+        | Ok _ as ok -> Lwt.return ok
+        | Error _ -> Lwt_unix.sleep wait_period >>= fun _ -> helper (retry + 1)
+    in
+    helper 0
 end
 
 module String_response_body = Make (String_t_response)

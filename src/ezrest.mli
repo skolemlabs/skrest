@@ -154,6 +154,18 @@ module type S = sig
       possible.
 
       @param body is the request body to send. There is no body by default. *)
+
+  val retry :
+    ?wait:float ->
+    retries:int ->
+    Uri.t ->
+    (Uri.t -> response result Lwt.t) ->
+    unit ->
+    response result Lwt.t
+  (** [retry ?wait ~retries uri f] retries [f] up to [retry] times. If [f]
+      returns [Error(_)], the thread sleeps for [wait], then it is called again
+      unless the number of times that [f] has been tried is equal to [retries].
+      If [f] returns [Ok(_)], the value is returned. *)
 end
 
 module String_response_body : S with type response = string t
