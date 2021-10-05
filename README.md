@@ -1,46 +1,9 @@
 # Easy REST requests using cohttp
 
-See `ezrest.mli` for detailed usage information.
+Based on [@hcarty's](https://github.com/hcarty) [`ezrest`](https://github.com/hcarty/ezrest).
 
-## Example usage
-Let's take a look at what it's like to use Ezrest from a REPL.
-```ocaml require-package=ezrest env=demo
-# #require "ezrest"
-```
+See [the README for `ezrest`](https://github.com/hcarty/ezrest/blob/main/README.md) for examples, and `skrest.mli` for detailed usage information.
 
-First, a simple `HEAD` request.
-```ocaml env=demo
-# let site = Uri.of_string "http://jsonplaceholder.typicode.com/"
-val site : Uri.t = <abstr>
-# Ezrest.head site
-- : Cohttp.Response.t Ezrest.result =
-Ok
- {Cohttp.Response.encoding = Cohttp__.Transfer.Unknown; headers = <abstr>;
-  version = `HTTP_1_1; status = `OK; flush = false}
-```
-
-Now we can `GET` some content, failing if the site tries to redirect us.
-```ocaml env=demo
-# Ezrest.get ~follow:0 site
-- : string Ezrest.result =
-Ok
- "\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\" />\n<link rel=\"stylesheet\" href=\"/style.css\" />\n<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/themes/prism-tom"... (* string length 6949; truncated *)
-```
-
-We can `PUT` and `POST` too!
-```ocaml env=demo
-# let put_site = Uri.with_path site "/posts/1"
-val put_site : Uri.t = <abstr>
-# Ezrest.put put_site
-- : string Ezrest.result = Ok "{\n  \"id\": 1\n}"
-# let post_site = Uri.with_path site "/posts"
-val post_site : Uri.t = <abstr>
-# Ezrest.post post_site
-- : string Ezrest.result = Ok "{\n  \"id\": 101\n}"
-```
-
-And `DELETE` if that's what's necessary.
-```ocaml env=demo
-# Ezrest.delete put_site
-- : string Ezrest.result = Ok "{}"
-```
+## Differences from ezrest
+- APM integration
+- A retry function has been added to the `Skrest` module.

@@ -1,5 +1,5 @@
 (library
- (public_name ezrest)
+ (public_name skrest)
  (preprocess
   (pps lwt_ppx))
  (libraries cohttp-lwt-unix rresult elastic-apm))

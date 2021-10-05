@@ -17,7 +17,6 @@ jobs:
           - windows-latest
         ocaml-version:
           - 4.11.1
-          - 4.08.1
 
     runs-on: ${{ matrix.os }}
 
@@ -26,12 +25,12 @@ jobs:
         uses: actions/checkout@master
 
       - name: Use OCaml ${{ matrix.ocaml-version }}
-        uses: avsm/setup-ocaml@v1
+        uses: avsm/setup-ocaml@v2
         with:
-          ocaml-version: ${{ matrix.ocaml-version }}
+          ocaml-compiler: ${{ matrix.ocaml-version }}
 
-      - run: opam pin add ezrest.dev -n .
-      - run: opam depext -yt ezrest
+      - run: opam pin add skrest.dev -n .
+      - run: opam depext -yt skrest
       - run: opam install -t . --deps-only
       - run: opam exec -- dune build
       - run: opam exec -- dune runtest

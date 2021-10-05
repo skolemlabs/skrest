@@ -1,22 +1,22 @@
 (lang dune 2.7)
 
-(name ezrest)
+(name skrest)
 
 (using mdx 0.1)
 
 (license Apache-2.0)
 
-(maintainers "Hezekiah M. Carty <hez@0ok.org>")
+(maintainers "Zach Baylin <zach@skolem.tech>")
 
-(authors "Hezekiah M. Carty <hez@0ok.org>")
+(authors "Hezekiah M. Carty <hez@0ok.org>" "Zach Baylin <zach@skolem.tech>")
 
 (source
- (github hcarty/ezrest))
+ (github skolemlabs/skrest))
 
 (generate_opam_files true)
 
 (package
- (name ezrest)
+ (name skrest)
  (synopsis "Simple wrapper on top of the cohttp's client")
  (depends
   (ocaml
