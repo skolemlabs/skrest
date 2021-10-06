@@ -18,12 +18,12 @@ and unhandled_response_code = {
   body : string;
 }
 
-type nonrec 'a result = ('a, [ `Ezrest of error ]) result
+type nonrec 'a result = ('a, [ `Skrest of error ]) result
 
-let error e = R.error @@ `Ezrest e
+let error e = R.error @@ `Skrest e
 let error_lwt e = Lwt.return @@ error e
 
-let pp_error fmt (`Ezrest err) =
+let pp_error fmt (`Skrest err) =
   match err with
   | Too_many_redirects -> Fmt.string fmt "Too many redirects"
   | Unexpected_redirect_body_content uri ->
@@ -41,9 +41,10 @@ let pp_error fmt (`Ezrest err) =
 
 let open_error = function
   | Ok _ as o -> o
-  | Error (`Ezrest _) as e -> e
+  | Error (`Skrest _) as e -> e
 
-let error_to_msg : 'a result -> ('a, [> `Msg of string ]) Stdlib.result = function
+let error_to_msg : 'a result -> ('a, [> `Msg of string ]) Stdlib.result =
+  function
   | Ok _ as o -> o
   | Error err -> Error (`Msg (Fmt.strf "%a" pp_error err))
 
@@ -272,7 +273,7 @@ struct
     wrap_unix_error ~timeout
       (wrap_with_transaction ?apm ?apm_tags
          ~name:(apm_name ~meth:"HEAD" ~uri)
-         ~subtype:"HEAD" ~action:"Ezrest#head" run
+         ~subtype:"HEAD" ~action:"Skrest#head" run
       )
       uri
 
@@ -301,7 +302,7 @@ struct
     wrap_unix_error ~timeout
       (wrap_with_transaction ?apm ?apm_tags
          ~name:(apm_name ~meth:"GET" ~uri)
-         ~subtype:"GET" ~action:"Ezrest#get"
+         ~subtype:"GET" ~action:"Skrest#get"
          (get ?ctx ~headers ~follow)
       )
       uri
@@ -319,7 +320,7 @@ struct
     wrap_unix_error ~timeout
       (wrap_with_transaction ?apm ?apm_tags
          ~name:(apm_name ~meth:"DELETE" ~uri)
-         ~subtype:"DELETE" ~action:"Ezrest#delete" (delete ?ctx ~headers)
+         ~subtype:"DELETE" ~action:"Skrest#delete" (delete ?ctx ~headers)
       )
       uri
 
@@ -336,7 +337,7 @@ struct
     wrap_unix_error ~timeout
       (wrap_with_transaction ?apm ?apm_tags
          ~name:(apm_name ~meth:"PATCH" ~uri)
-         ~subtype:"PATCH" ~action:"Ezrest#patch"
+         ~subtype:"PATCH" ~action:"Skrest#patch"
          (patch ?ctx ~headers ?body)
       )
       uri
@@ -354,7 +355,7 @@ struct
     wrap_unix_error ~timeout
       (wrap_with_transaction ?apm ?apm_tags
          ~name:(apm_name ~meth:"GET" ~uri)
-         ~subtype:"GET" ~action:"Ezrest#post" (post ?ctx ~headers ?body)
+         ~subtype:"GET" ~action:"Skrest#post" (post ?ctx ~headers ?body)
       )
       uri
 
@@ -371,7 +372,7 @@ struct
     wrap_unix_error ~timeout
       (wrap_with_transaction ?apm ?apm_tags
          ~name:(apm_name ~meth:"PUT" ~uri)
-         ~subtype:"PUT" ~action:"Ezrest#put" (put ?ctx ~headers ?body)
+         ~subtype:"PUT" ~action:"Skrest#put" (put ?ctx ~headers ?body)
       )
       uri
 
@@ -388,7 +389,7 @@ struct
     wrap_unix_error ~timeout
       (wrap_with_transaction ?apm ?apm_tags
          ~name:(apm_name ~meth:"POST" ~uri)
-         ~subtype:"POST" ~action:"Ezrest#post_form"
+         ~subtype:"POST" ~action:"Skrest#post_form"
          (post_form ?ctx ~headers ~params)
       )
       uri
@@ -407,7 +408,7 @@ struct
     wrap_unix_error ~timeout
       (wrap_with_transaction ?apm ?apm_tags
          ~name:(apm_name ~meth:meth_str ~uri)
-         ~subtype:meth_str ~action:"Ezrest#call"
+         ~subtype:meth_str ~action:"Skrest#call"
          (call ?ctx ~headers ?body meth)
       )
       uri

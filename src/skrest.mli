@@ -17,7 +17,7 @@ and unhandled_response_code = {
   body : string;
 }
 
-type nonrec 'a result = ('a, [ `Ezrest of error ]) result
+type nonrec 'a result = ('a, [ `Skrest of error ]) result
 
 (** {1 Timeouts}
 
@@ -181,6 +181,6 @@ include S with type response = string
 
 (** {2 Printing and converting errors} *)
 
-val pp_error : Format.formatter -> [ `Ezrest of error ] -> unit
-val open_error : 'a result -> ('a, [> `Ezrest of error ]) Stdlib.result
+val pp_error : Format.formatter -> [ `Skrest of error ] -> unit
+val open_error : 'a result -> ('a, [> `Skrest of error ]) Stdlib.result
 val error_to_msg : 'a result -> ('a, [> `Msg of string ]) Stdlib.result
