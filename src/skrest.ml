@@ -46,7 +46,7 @@ let open_error = function
 let error_to_msg : 'a result -> ('a, [> `Msg of string ]) Stdlib.result =
   function
   | Ok _ as o -> o
-  | Error err -> Error (`Msg (Fmt.strf "%a" pp_error err))
+  | Error err -> Error (`Msg (Fmt.str "%a" pp_error err))
 
 type 'body body =
   | Consume : string body
@@ -87,7 +87,7 @@ let wrap_unix_error ~timeout f x =
   in
   try%lwt Lwt.pick [ f x; timeout ] with
   | Unix.Unix_error (err, func, arg) ->
-    let message = Fmt.strf "%s from %s(%s)" (Unix.error_message err) func arg in
+    let message = Fmt.str "%s from %s(%s)" (Unix.error_message err) func arg in
     error_lwt @@ Connection_error (err, message)
   | exn ->
     let bt = Printexc.get_raw_backtrace () in
