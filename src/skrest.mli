@@ -50,8 +50,8 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Uri.t ->
     Cohttp.Response.t result Lwt.t
   (** [head ?ctx ?headers uri] returns the result of a [HEAD] request to [uri]. *)
@@ -60,8 +60,8 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     follow:int ->
     Uri.t ->
     response result Lwt.t
@@ -74,8 +74,8 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Uri.t ->
     response result Lwt.t
   (** [delete ?ctx ?headers ~follow uri] returns the result of a [DELETE]
@@ -86,8 +86,8 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Uri.t ->
     response result Lwt.t
   (** [post ?ctx ?headers ?body uri] returns the result of a [PATCH] request to
@@ -100,8 +100,8 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Uri.t ->
     response result Lwt.t
   (** [post ?ctx ?headers ?body uri] returns the result of a [POST] request to
@@ -114,8 +114,8 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Uri.t ->
     response result Lwt.t
   (** [put ?ctx ?headers ?body uri] returns the result of a [PUT] request to
@@ -127,8 +127,8 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     params:(string * string list) list ->
     Uri.t ->
     response result Lwt.t
@@ -143,8 +143,8 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Cohttp.Code.meth ->
     Uri.t ->
     response result Lwt.t

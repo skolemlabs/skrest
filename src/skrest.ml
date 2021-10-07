@@ -46,7 +46,7 @@ let open_error = function
 let error_to_msg : 'a result -> ('a, [> `Msg of string ]) Stdlib.result =
   function
   | Ok _ as o -> o
-  | Error err -> Error (`Msg (Fmt.strf "%a" pp_error err))
+  | Error err -> Error (`Msg (Fmt.str "%a" pp_error err))
 
 type 'body body =
   | Consume : string body
@@ -87,7 +87,7 @@ let wrap_unix_error ~timeout f x =
   in
   try%lwt Lwt.pick [ f x; timeout ] with
   | Unix.Unix_error (err, func, arg) ->
-    let message = Fmt.strf "%s from %s(%s)" (Unix.error_message err) func arg in
+    let message = Fmt.str "%s from %s(%s)" (Unix.error_message err) func arg in
     error_lwt @@ Connection_error (err, message)
   | exn ->
     let bt = Printexc.get_raw_backtrace () in
@@ -96,8 +96,8 @@ let wrap_unix_error ~timeout f x =
 let apm_name ~meth ~uri = Fmt.str "%s: %s" meth (Uri.to_string uri)
 
 let wrap_with_transaction
-    ?(apm : Elastic_apm.Transaction.t option)
-    ?(apm_tags : Elastic_apm.Tag.t list option)
+    ?(apm : Skapm.Transaction.t option)
+    ?(apm_tags : Skapm.Tag.t list option)
     ~name
     ~subtype
     ~action
@@ -106,14 +106,14 @@ let wrap_with_transaction
   let open Lwt in
   match apm with
   | Some t ->
-    let context = Elastic_apm.Span.Context.make ?tags:apm_tags () in
+    let context = Skapm.Span.Context.make ?tags:apm_tags () in
     let span =
-      Elastic_apm.Span.make_span ~context ~parent:(`Transaction t) ~name
+      Skapm.Span.make_span ~context ~parent:(`Transaction t) ~name
         ~type_:"Web Request" ~subtype ~action ()
     in
     f x >|= fun res ->
-    let (_ : Elastic_apm.Span.result) =
-      Elastic_apm.Span.finalize_and_send span
+    let (_ : Skapm.Span.result) =
+      Skapm.Span.finalize_and_send span
     in
     res
   | None -> f x
@@ -173,8 +173,8 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Uri.t ->
     Cohttp.Response.t result Lwt.t
 
@@ -182,8 +182,8 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     follow:int ->
     Uri.t ->
     response result Lwt.t
@@ -192,8 +192,8 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Uri.t ->
     response result Lwt.t
 
@@ -202,8 +202,8 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Uri.t ->
     response result Lwt.t
 
@@ -212,8 +212,8 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Uri.t ->
     response result Lwt.t
 
@@ -222,8 +222,8 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Uri.t ->
     response result Lwt.t
 
@@ -231,8 +231,8 @@ module type S = sig
     ?ctx:Cohttp_lwt_unix.Client.ctx ->
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     params:(string * string list) list ->
     Uri.t ->
     response result Lwt.t
@@ -242,8 +242,8 @@ module type S = sig
     ?headers:Cohttp.Header.t ->
     ?timeout:float ->
     ?body:Cohttp_lwt.Body.t ->
-    ?apm:Elastic_apm.Transaction.t ->
-    ?apm_tags:Elastic_apm.Tag.t list ->
+    ?apm:Skapm.Transaction.t ->
+    ?apm_tags:Skapm.Tag.t list ->
     Cohttp.Code.meth ->
     Uri.t ->
     response result Lwt.t

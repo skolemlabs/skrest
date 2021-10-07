@@ -25,7 +25,7 @@
    (>= 2.5.4))
   (dune
    (>= 2.7.0))
-  (elastic-apm :build)
+  (skapm :build)
   (fmt
    (>= 0.8.9))
   (lwt
