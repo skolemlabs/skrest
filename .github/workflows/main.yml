@@ -12,9 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-latest
           - ubuntu-latest
-          - windows-latest
         ocaml-version:
           - 4.11.1
 
@@ -28,7 +26,10 @@ jobs:
         uses: avsm/setup-ocaml@v2
         with:
           ocaml-compiler: ${{ matrix.ocaml-version }}
+          opam-depext: false
+          opam-pin: false
 
+      - run: opam pin add skapm.dev -n https://github.com/skolemlabs/skapm.git
       - run: opam pin add skrest.dev -n .
       - run: opam depext -yt skrest
       - run: opam install -t . --deps-only
