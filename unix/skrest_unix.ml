@@ -20,4 +20,6 @@ end
 
 module Backend_impl = Skrest.Make_with_backend (Backend)
 
+include Backend_impl
+
 include Backend_impl.String_response_body
