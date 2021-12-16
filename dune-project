@@ -30,6 +30,8 @@
    (>= 4.0.0))
   (lwt_ppx
    (>= 2.0.0))
+  (cohttp
+   (>= 2.5.4))
   (mdx
    (and
     (>= 1.7.0)
@@ -55,6 +57,6 @@
  (depends
   (ocaml
    (>= 4.08.0))
-  (brr
-   (>= 0.0.2))
+  (cohttp-lwt-unix
+   (>= 2.5.4))
   (skrest :build)))
