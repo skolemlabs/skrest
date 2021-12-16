@@ -23,7 +23,6 @@
    (>= 4.08.0))
   (dune
    (>= 2.7.0))
-  (skapm :build)
   (fmt
    (>= 0.8.9))
   (lwt
@@ -47,6 +46,7 @@
  (depends
   (ocaml
    (>= 4.08.0))
+  (skapm :build)
   (cohttp-lwt-unix
    (>= 2.5.4))
   (skrest :build)))

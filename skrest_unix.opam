@@ -9,6 +9,7 @@ bug-reports: "https://github.com/skolemlabs/skrest/issues"
 depends: [
   "dune" {>= "2.7"}
   "ocaml" {>= "4.08.0"}
+  "skapm" {build}
   "cohttp-lwt-unix" {>= "2.5.4"}
   "skrest" {build}
   "odoc" {with-doc}
