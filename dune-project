@@ -43,7 +43,7 @@
 
 (package
  (name skrest_unix)
- (synopsis "Simple wrapper on top of the Cohttp client")
+ (synopsis "Simple wrapper on top of the Cohttp Unix client")
  (depends
   (ocaml
    (>= 4.08.0))
@@ -53,7 +53,7 @@
 
 (package
  (name skrest_js)
- (synopsis "Simple wrapper on top of the Brr_io.Fetch client")
+ (synopsis "Simple wrapper on top of the Cohttp JSOO client")
  (depends
   (ocaml
    (>= 4.08.0))
