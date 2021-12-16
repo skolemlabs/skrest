@@ -1,0 +1,5 @@
+(library
+ (public_name skrest_js)
+ (preprocess
+  (pps lwt_ppx))
+ (libraries cohttp-lwt-jsoo js_of_ocaml-lwt rresult fmt skrest))

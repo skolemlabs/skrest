@@ -1,5 +1,3 @@
-let default_timeout = ref 30.0
-
 module Backend : Skrest.Backend = struct
   type native_error = Unix.error
 
@@ -20,6 +18,6 @@ module Backend : Skrest.Backend = struct
   module Client = Cohttp_lwt_unix.Client
 end
 
-module BackendImpl = Skrest.Make_with_backend (Backend)
+module Backend_impl = Skrest.Make_with_backend (Backend)
 
-include BackendImpl.String_response_body
+include Backend_impl.String_response_body

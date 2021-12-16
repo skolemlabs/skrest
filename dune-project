@@ -57,6 +57,6 @@
  (depends
   (ocaml
    (>= 4.08.0))
-  (cohttp-lwt-unix
+  (cohttp-lwt-jsoo
    (>= 2.5.4))
   (skrest :build)))
