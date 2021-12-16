@@ -1,0 +1,5 @@
+(library
+ (public_name skrest)
+ (libraries fmt rresult cohttp cohttp-lwt)
+ (preprocess
+  (pps lwt_ppx)))
