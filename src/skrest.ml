@@ -123,6 +123,23 @@ module Make_with_backend (Backend : Backend) = struct
   module C = Backend.Client
   type ctx = C.ctx
 
+  let pp_error fmt (`Skrest err) =
+    match err with
+    | Too_many_redirects -> Fmt.string fmt "Too many redirects"
+    | Unexpected_redirect_body_content uri ->
+      Fmt.pf fmt "Unexpected redirect body content from %a" Uri.pp_hum uri
+    | Missing_redirect_header uri ->
+      Fmt.pf fmt "Missing redirect header from %a" Uri.pp_hum uri
+    | Unhandled_response_code { uri; status; _ } ->
+      Fmt.pf fmt "Unhandled response %s from %a"
+        (Cohttp.Code.string_of_status status)
+        Uri.pp_hum uri
+    | Connection_error (err, message) ->
+      Fmt.pf fmt "Connection error (%a) %s" Backend.pp_native_error err message
+    | Trapped_exception (exn, _backtrace) ->
+      Fmt.pf fmt "Trapped cohttp exception %s" (Printexc.to_string exn)
+    | Timed_out -> Fmt.string fmt "Request timed out"
+
   module type S = sig
     type response
 
@@ -197,23 +214,6 @@ module Make_with_backend (Backend : Backend) = struct
       unit ->
       response result Lwt.t
   end
-
-  let pp_error fmt (`Skrest err) =
-    match err with
-    | Too_many_redirects -> Fmt.string fmt "Too many redirects"
-    | Unexpected_redirect_body_content uri ->
-      Fmt.pf fmt "Unexpected redirect body content from %a" Uri.pp_hum uri
-    | Missing_redirect_header uri ->
-      Fmt.pf fmt "Missing redirect header from %a" Uri.pp_hum uri
-    | Unhandled_response_code { uri; status; _ } ->
-      Fmt.pf fmt "Unhandled response %s from %a"
-        (Cohttp.Code.string_of_status status)
-        Uri.pp_hum uri
-    | Connection_error (err, message) ->
-      Fmt.pf fmt "Connection error (%a) %s" Backend.pp_native_error err message
-    | Trapped_exception (exn, _backtrace) ->
-      Fmt.pf fmt "Trapped cohttp exception %s" (Printexc.to_string exn)
-    | Timed_out -> Fmt.string fmt "Request timed out"
 
   module Make_with_response (Response : Response) :
     S with type response = Response.response = struct
