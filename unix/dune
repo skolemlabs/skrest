@@ -1,0 +1,5 @@
+(library
+ (public_name skrest_unix)
+ (preprocess
+  (pps lwt_ppx))
+ (libraries cohttp-lwt-unix rresult skapm fmt skrest))
