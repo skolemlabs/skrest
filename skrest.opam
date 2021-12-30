@@ -13,6 +13,7 @@ depends: [
   "lwt" {>= "4.0.0"}
   "lwt_ppx" {>= "2.0.0"}
   "cohttp" {>= "2.5.4"}
+  "cohttp-lwt" {>= "2.5.4"}
   "mdx" {>= "1.7.0" & with-test}
   "rresult" {>= "0.6.0"}
   "uri" {>= "3.0.0"}

@@ -186,4 +186,6 @@ module Make_with_backend (Backend : Backend) : sig
   (** {2 Printing and converting errors} *)
 
   val pp_error : Format.formatter -> [< `Skrest of error ] -> unit
+  val open_error : 'a result -> ('a, [> `Skrest of error ]) Stdlib.result
+  val error_to_msg : 'a result -> ('a, [> `Msg of string ]) Stdlib.result
 end
