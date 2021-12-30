@@ -140,6 +140,14 @@ module Make_with_backend (Backend : Backend) = struct
       Fmt.pf fmt "Trapped cohttp exception %s" (Printexc.to_string exn)
     | Timed_out -> Fmt.string fmt "Request timed out"
 
+  let open_error = function
+    | Ok _ as o -> o
+    | Error (`Skrest _) as e -> e
+
+  let error_to_msg = function
+    | Ok _ as o -> o
+    | Error err -> Error (`Msg (Fmt.str "%a" pp_error err))
+
   module type S = sig
     type response
 
