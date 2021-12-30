@@ -17,20 +17,21 @@
 
 (package
  (name skrest)
- (synopsis "Simple library for performing HTTP requests")
+ (synopsis "Simple wrapper on top of the cohttp's client")
  (depends
   (ocaml
    (>= 4.08.0))
+  (cohttp-lwt-unix
+   (>= 2.5.4))
   (dune
    (>= 2.7.0))
+  (skapm :build)
   (fmt
    (>= 0.8.9))
   (lwt
    (>= 4.0.0))
   (lwt_ppx
    (>= 2.0.0))
-  (cohttp
-   (>= 2.5.4))
   (mdx
    (and
     (>= 1.7.0)
@@ -39,24 +40,3 @@
    (>= 0.6.0))
   (uri
    (>= 3.0.0))))
-
-(package
- (name skrest_unix)
- (synopsis "Simple wrapper on top of the Cohttp Unix client")
- (depends
-  (ocaml
-   (>= 4.08.0))
-  (skapm :build)
-  (cohttp-lwt-unix
-   (>= 2.5.4))
-  (skrest :build)))
-
-(package
- (name skrest_js)
- (synopsis "Simple wrapper on top of the Cohttp JSOO client")
- (depends
-  (ocaml
-   (>= 4.08.0))
-  (cohttp-lwt-jsoo
-   (>= 2.5.4))
-  (skrest :build)))

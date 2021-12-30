@@ -1,4 +1,0 @@
-(executable
- (name skrest_js_example)
- (libraries skrest_js)
- (modes js))
