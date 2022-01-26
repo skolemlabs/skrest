@@ -57,7 +57,7 @@ module Apm = struct
       (uri : Uri.t) =
     let run = head ?ctx ?headers ?timeout in
     wrap ?apm ?apm_tags ~name:(name ~methd:"HEAD" ~uri) ~subtype:"HEAD"
-      ~action:"Skrest_unix#head" run
+      ~action:"Skrest_unix#head" run uri
 
   let get
       ?(ctx : ctx option)
@@ -69,7 +69,7 @@ module Apm = struct
       (uri : Uri.t) =
     let run = get ?ctx ?headers ?timeout ~follow in
     wrap ?apm ?apm_tags ~name:(name ~methd:"GET" ~uri) ~subtype:"GET"
-      ~action:"Skrest_unix#get" run
+      ~action:"Skrest_unix#get" run uri
 
   let delete
       ?(ctx : ctx option)
@@ -81,7 +81,7 @@ module Apm = struct
     let run = delete ?ctx ?headers ?timeout in
     wrap ?apm ?apm_tags
       ~name:(name ~methd:"DELETE" ~uri)
-      ~subtype:"DELETE" ~action:"Skrest_unix#delete" run
+      ~subtype:"DELETE" ~action:"Skrest_unix#delete" run uri
 
   let patch
       ?(ctx : ctx option)
@@ -93,7 +93,7 @@ module Apm = struct
       (uri : Uri.t) =
     let run = patch ?ctx ?headers ?timeout ?body in
     wrap ?apm ?apm_tags ~name:(name ~methd:"PATCH" ~uri) ~subtype:"PATCH"
-      ~action:"Skrest_unix#patch" run
+      ~action:"Skrest_unix#patch" run uri
 
   let post
       ?(ctx : ctx option)
@@ -105,7 +105,7 @@ module Apm = struct
       (uri : Uri.t) =
     let run = post ?ctx ?headers ?timeout ?body in
     wrap ?apm ?apm_tags ~name:(name ~methd:"POST" ~uri) ~subtype:"POST"
-      ~action:"Skrest_unix#post" run
+      ~action:"Skrest_unix#post" run uri
 
   let post_form
       ?(ctx : ctx option)
@@ -117,7 +117,7 @@ module Apm = struct
       (uri : Uri.t) =
     let run = post_form ?ctx ?headers ?timeout ~params in
     wrap ?apm ?apm_tags ~name:(name ~methd:"POST" ~uri) ~subtype:"POST"
-      ~action:"Skrest_unix#post_form" run
+      ~action:"Skrest_unix#post_form" run uri
 
   let call
       ?(ctx : ctx option)
@@ -132,5 +132,5 @@ module Apm = struct
     let methd_str = Cohttp.Code.string_of_method methd in
     wrap ?apm ?apm_tags
       ~name:(name ~methd:methd_str ~uri)
-      ~subtype:methd_str ~action:"Skrest_unix#call" run
+      ~subtype:methd_str ~action:"Skrest_unix#call" run uri
 end
