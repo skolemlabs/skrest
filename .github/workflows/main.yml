@@ -32,5 +32,5 @@ jobs:
       - run: opam pin add skrest.dev -n .
       - run: opam depext -yt skrest
       - run: opam install -t . --deps-only
-      - run: opam exec -- dune build
+      - run: opam exec -- dune build --profile=release
       - run: opam exec -- dune runtest
