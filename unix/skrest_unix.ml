@@ -28,7 +28,7 @@ module Apm = struct
   let name ~methd ~uri = Fmt.str "%s: %s" methd (Uri.to_string uri)
 
   let wrap
-      ?(apm : Skapm.Transaction.t option)
+      ?(apm : Skapm.Span.parent option)
       ?(apm_tags : Skapm.Tag.t list option)
       ~name
       ~subtype
@@ -37,11 +37,11 @@ module Apm = struct
       x =
     let open Lwt in
     match apm with
-    | Some t ->
+    | Some parent ->
       let context = Skapm.Span.Context.make ?tags:apm_tags () in
       let span =
-        Skapm.Span.make_span ~context ~parent:(`Transaction t) ~name
-          ~type_:"Web Request" ~subtype ~action ()
+        Skapm.Span.make_span ~context ~parent ~name ~type_:"Web Request"
+          ~subtype ~action ()
       in
       f x >|= fun res ->
       let (_ : Skapm.Span.result) = Skapm.Span.finalize_and_send span in
@@ -52,7 +52,7 @@ module Apm = struct
       ?(ctx : ctx option)
       ?(headers : Cohttp.Header.t option)
       ?(timeout : float option)
-      ?(apm : Skapm.Transaction.t option)
+      ?(apm : Skapm.Span.parent option)
       ?(apm_tags : Skapm.Tag.t list option)
       (uri : Uri.t) =
     let run = head ?ctx ?headers ?timeout in
@@ -63,7 +63,7 @@ module Apm = struct
       ?(ctx : ctx option)
       ?(headers : Cohttp.Header.t option)
       ?(timeout : float option)
-      ?(apm : Skapm.Transaction.t option)
+      ?(apm : Skapm.Span.parent option)
       ?(apm_tags : Skapm.Tag.t list option)
       ~(follow : int)
       (uri : Uri.t) =
@@ -75,7 +75,7 @@ module Apm = struct
       ?(ctx : ctx option)
       ?(headers : Cohttp.Header.t option)
       ?(timeout : float option)
-      ?(apm : Skapm.Transaction.t option)
+      ?(apm : Skapm.Span.parent option)
       ?(apm_tags : Skapm.Tag.t list option)
       (uri : Uri.t) =
     let run = delete ?ctx ?headers ?timeout in
@@ -88,7 +88,7 @@ module Apm = struct
       ?(headers : Cohttp.Header.t option)
       ?(timeout : float option)
       ?(body : Cohttp_lwt.Body.t option)
-      ?(apm : Skapm.Transaction.t option)
+      ?(apm : Skapm.Span.parent option)
       ?(apm_tags : Skapm.Tag.t list option)
       (uri : Uri.t) =
     let run = patch ?ctx ?headers ?timeout ?body in
@@ -100,7 +100,7 @@ module Apm = struct
       ?(headers : Cohttp.Header.t option)
       ?(timeout : float option)
       ?(body : Cohttp_lwt.Body.t option)
-      ?(apm : Skapm.Transaction.t option)
+      ?(apm : Skapm.Span.parent option)
       ?(apm_tags : Skapm.Tag.t list option)
       (uri : Uri.t) =
     let run = post ?ctx ?headers ?timeout ?body in
@@ -111,7 +111,7 @@ module Apm = struct
       ?(ctx : ctx option)
       ?(headers : Cohttp.Header.t option)
       ?(timeout : float option)
-      ?(apm : Skapm.Transaction.t option)
+      ?(apm : Skapm.Span.parent option)
       ?(apm_tags : Skapm.Tag.t list option)
       ~(params : (string * string list) list)
       (uri : Uri.t) =
@@ -124,7 +124,7 @@ module Apm = struct
       ?(headers : Cohttp.Header.t option)
       ?(timeout : float option)
       ?(body : Cohttp_lwt.Body.t option)
-      ?(apm : Skapm.Transaction.t option)
+      ?(apm : Skapm.Span.parent option)
       ?(apm_tags : Skapm.Tag.t list option)
       (methd : Cohttp.Code.meth)
       (uri : Uri.t) =
