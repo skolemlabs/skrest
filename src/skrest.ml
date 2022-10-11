@@ -37,6 +37,7 @@ let of_body :
   | Consume ->
     fun b ->
       let%lwt body = Cohttp_lwt.Body.to_string b in
+      let%lwt () = Cohttp_lwt.Body.drain_body b in
       Lwt.return { response; body }
   | Drain ->
     fun b ->
