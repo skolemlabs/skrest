@@ -46,12 +46,12 @@
  (name skrest_unix)
  (synopsis "Simple wrapper on top of the Cohttp Unix client")
  (depends
+  skapm
   (ocaml
    (>= 4.08.0))
-  (skapm :build)
   (cohttp-lwt-unix
    (>= 2.5.4))
-  (skrest :build)))
+  (skrest :version)))
 
 (package
  (name skrest_js)
@@ -61,4 +61,4 @@
    (>= 4.08.0))
   (cohttp-lwt-jsoo
    (>= 2.5.4))
-  (skrest :build)))
+  (skrest :version)))
