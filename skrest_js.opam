@@ -10,7 +10,7 @@ depends: [
   "dune" {>= "2.7"}
   "ocaml" {>= "4.08.0"}
   "cohttp-lwt-jsoo" {>= "2.5.4"}
-  "skrest" {build}
+  "skrest" {version}
   "odoc" {with-doc}
 ]
 build: [
