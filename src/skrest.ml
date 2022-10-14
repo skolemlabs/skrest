@@ -101,6 +101,9 @@ module type Backend = sig
 
   val handle_exn : exn -> native_error error
 
+  val inject_headers : Cohttp.Header.t option -> Cohttp.Header.t
+  (** [inject_headers h] adds platform-specific headers to [h] *)
+
   module Client : Cohttp_lwt.S.Client
 end
 
@@ -228,12 +231,9 @@ module Make_with_backend (Backend : Backend) = struct
     S with type response = Response.response = struct
     type response = Response.response
 
-    let always_close headers =
-      Cohttp.Header.add_opt_unless_exists headers "connection" "close"
-
     let head ?ctx ?headers ?timeout uri =
       let run uri =
-        let headers = always_close headers in
+        let headers = Backend.inject_headers headers in
         let%lwt result = C.head ?ctx ~headers uri in
         Lwt.return @@ Ok result
       in
@@ -261,7 +261,7 @@ module Make_with_backend (Backend : Backend) = struct
         error_lwt (Unhandled_response_code { uri; status; body })
 
     let get ?ctx ?headers ?timeout ~follow uri =
-      let headers = always_close headers in
+      let headers = Backend.inject_headers headers in
       wrap_error ~sleep:Backend.sleep ~handle_exn:Backend.handle_exn ~timeout
         (get ?ctx ~headers ~follow)
         uri
@@ -275,7 +275,7 @@ module Make_with_backend (Backend : Backend) = struct
         error_lwt (Unhandled_response_code { uri; status; body })
 
     let delete ?ctx ?headers ?timeout uri =
-      let headers = always_close headers in
+      let headers = Backend.inject_headers headers in
       wrap_error ~sleep:Backend.sleep ~handle_exn:Backend.handle_exn ~timeout
         (delete ?ctx ~headers) uri
 
@@ -288,7 +288,7 @@ module Make_with_backend (Backend : Backend) = struct
         error_lwt (Unhandled_response_code { uri; status; body })
 
     let patch ?ctx ?headers ?timeout ?body uri =
-      let headers = always_close headers in
+      let headers = Backend.inject_headers headers in
       wrap_error ~sleep:Backend.sleep ~handle_exn:Backend.handle_exn ~timeout
         (patch ?ctx ~headers ?body)
         uri
@@ -302,7 +302,7 @@ module Make_with_backend (Backend : Backend) = struct
         error_lwt (Unhandled_response_code { uri; status; body })
 
     let post ?ctx ?headers ?timeout ?body uri =
-      let headers = always_close headers in
+      let headers = Backend.inject_headers headers in
       wrap_error ~sleep:Backend.sleep ~handle_exn:Backend.handle_exn ~timeout
         (post ?ctx ~headers ?body) uri
 
@@ -315,7 +315,7 @@ module Make_with_backend (Backend : Backend) = struct
         error_lwt (Unhandled_response_code { uri; status; body })
 
     let put ?ctx ?headers ?timeout ?body uri =
-      let headers = always_close headers in
+      let headers = Backend.inject_headers headers in
       wrap_error ~sleep:Backend.sleep ~handle_exn:Backend.handle_exn ~timeout
         (put ?ctx ~headers ?body) uri
 
@@ -328,7 +328,7 @@ module Make_with_backend (Backend : Backend) = struct
         error_lwt (Unhandled_response_code { uri; status; body })
 
     let post_form ?ctx ?headers ?timeout ~params uri =
-      let headers = always_close headers in
+      let headers = Backend.inject_headers headers in
       wrap_error ~sleep:Backend.sleep ~handle_exn:Backend.handle_exn ~timeout
         (post_form ?ctx ~headers ~params)
         uri
@@ -342,7 +342,7 @@ module Make_with_backend (Backend : Backend) = struct
         error_lwt (Unhandled_response_code { uri; status; body })
 
     let call ?ctx ?headers ?timeout ?body meth uri =
-      let headers = always_close headers in
+      let headers = Backend.inject_headers headers in
       wrap_error ~sleep:Backend.sleep ~handle_exn:Backend.handle_exn ~timeout
         (call ?ctx ~headers ?body meth)
         uri
