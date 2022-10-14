@@ -50,6 +50,8 @@ module type Backend = sig
 
   val handle_exn : exn -> native_error error
 
+  val inject_headers : Cohttp.Header.t option -> Cohttp.Header.t
+
   module Client : Cohttp_lwt.S.Client
 end
 

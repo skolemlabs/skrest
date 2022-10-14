@@ -7,6 +7,8 @@ module Backend : Skrest.Backend = struct
 
   let sleep = Js_of_ocaml_lwt.Lwt_js.sleep
 
+  let inject_headers _ = Cohttp.Header.init ()
+
   let handle_exn = function
     | Js.Error err ->
       let message = Fmt.str "%a" pp_native_error err in
