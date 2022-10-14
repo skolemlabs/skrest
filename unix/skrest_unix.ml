@@ -6,7 +6,7 @@ module Backend : Skrest.Backend = struct
   let sleep = Lwt_unix.sleep
 
   let inject_headers headers =
-    Cohttp.Header.add_opt_unless_exists headers "close" "always"
+    Cohttp.Header.add_opt_unless_exists headers "connection" "close"
 
   let handle_exn = function
     | Unix.Unix_error (err, func, arg) ->
