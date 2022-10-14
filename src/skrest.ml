@@ -248,14 +248,21 @@ module Make_with_backend (Backend : Backend) = struct
       | `Temporary_redirect ->
         if follow > 0 then
           if%lwt Cohttp_lwt.Body.is_empty body then (
+            (* Body is empty, does not need to be drained. *)
             let response_headers = Cohttp.Response.headers response in
             match Cohttp.Header.get_location response_headers with
             | Some uri -> get ?ctx ?headers ~follow:(pred follow) uri
             | None -> error_lwt (Missing_redirect_header uri)
-          ) else
+          ) else (
+            (* Unexpected body content, must drain *)
+            let%lwt () = Cohttp_lwt.Body.drain_body body in
             error_lwt (Unexpected_redirect_body_content uri)
-        else
+          )
+        else (
+          (* Possibly contains body, optimisitically drain *)
+          let%lwt () = Cohttp_lwt.Body.drain_body body in
           error_lwt Too_many_redirects
+        )
       | status ->
         let%lwt body = Cohttp_lwt.Body.to_string body in
         error_lwt (Unhandled_response_code { uri; status; body })
