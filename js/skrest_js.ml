@@ -7,7 +7,9 @@ module Backend : Skrest.Backend = struct
 
   let sleep = Js_of_ocaml_lwt.Lwt_js.sleep
 
-  let inject_headers _ = Cohttp.Header.init ()
+  let inject_headers = function
+    | Some h -> h
+    | None -> Cohttp.Header.init ()
 
   let handle_exn = function
     | Js.Error err ->
