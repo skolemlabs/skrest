@@ -1,4 +1,4 @@
-(lang dune 2.7)
+(lang dune 3.0)
 
 (name skrest)
 
@@ -14,6 +14,8 @@
  (github skolemlabs/skrest))
 
 (generate_opam_files true)
+
+(version 1.2.0)
 
 (package
  (name skrest)
