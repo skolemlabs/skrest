@@ -53,7 +53,7 @@
    (>= 4.08.0))
   (cohttp-lwt-unix
    (>= 2.5.4))
-  (skrest :version)))
+  (skrest (= :version))))
 
 (package
  (name skrest_js)
@@ -63,4 +63,4 @@
    (>= 4.08.0))
   (cohttp-lwt-jsoo
    (>= 2.5.4))
-  (skrest :version)))
+  (skrest (= :version))))
