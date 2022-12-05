@@ -28,6 +28,7 @@ jobs:
           opam-depext: false
           opam-pin: false
 
+      - run: opam pin add skapm.dev -n https://github.com/skolemlabs/skapm.git
       - run: opam pin add skrest.dev -n .
       - run: opam pin add skrest_js.dev -n .
       - run: opam pin add skrest_unix.dev -n .
