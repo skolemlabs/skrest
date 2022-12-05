@@ -2,8 +2,10 @@
 opam-version: "2.0"
 version: "1.2.0"
 synopsis: "Simple wrapper on top of the Cohttp Unix client"
-maintainer: ["Zach Baylin <zach@skolem.tech>"]
-authors: ["Hezekiah M. Carty <hez@0ok.org>" "Zach Baylin <zach@skolem.tech>"]
+maintainer: ["Zach Baylin <zach.baylin@skolem.com>"]
+authors: [
+  "Hezekiah M. Carty <hez@0ok.org>" "Zach Baylin <zach.baylin@skolem.com>"
+]
 license: "Apache-2.0"
 homepage: "https://github.com/skolemlabs/skrest"
 bug-reports: "https://github.com/skolemlabs/skrest/issues"

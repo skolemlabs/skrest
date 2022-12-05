@@ -6,9 +6,9 @@
 
 (license Apache-2.0)
 
-(maintainers "Zach Baylin <zach@skolem.tech>")
+(maintainers "Zach Baylin <zach.baylin@skolem.com>")
 
-(authors "Hezekiah M. Carty <hez@0ok.org>" "Zach Baylin <zach@skolem.tech>")
+(authors "Hezekiah M. Carty <hez@0ok.org>" "Zach Baylin <zach.baylin@skolem.com>")
 
 (source
  (github skolemlabs/skrest))
