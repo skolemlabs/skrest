@@ -1,4 +1,4 @@
-(lang dune 2.7)
+(lang dune 3.0)
 
 (name skrest)
 
@@ -6,14 +6,16 @@
 
 (license Apache-2.0)
 
-(maintainers "Zach Baylin <zach@skolem.tech>")
+(maintainers "Zach Baylin <zach.baylin@skolem.com>")
 
-(authors "Hezekiah M. Carty <hez@0ok.org>" "Zach Baylin <zach@skolem.tech>")
+(authors "Hezekiah M. Carty <hez@0ok.org>" "Zach Baylin <zach.baylin@skolem.com>")
 
 (source
  (github skolemlabs/skrest))
 
 (generate_opam_files true)
+
+(version 1.2.0)
 
 (package
  (name skrest)
