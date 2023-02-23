@@ -231,6 +231,13 @@ module Make_with_backend (Backend : Backend) = struct
     S with type response = Response.response = struct
     type response = Response.response
 
+    let make_response r b =
+      let promise = Response.make r b in
+      Lwt.on_cancel promise (fun () ->
+          Lwt.async (fun () -> Cohttp_lwt.Body.drain_body b)
+      );
+      promise
+
     let head ?ctx ?headers ?timeout uri =
       let run uri =
         let headers = Backend.inject_headers headers in
@@ -243,7 +250,7 @@ module Make_with_backend (Backend : Backend) = struct
     let rec get ?ctx ?headers ~follow uri =
       let%lwt (response, body) = C.get ?ctx ?headers uri in
       match Cohttp.Response.(response.status) with
-      | #Cohttp.Code.success_status -> Response.make response body
+      | #Cohttp.Code.success_status -> make_response response body
       | `Found
       | `Temporary_redirect ->
         if follow > 0 then
@@ -276,7 +283,7 @@ module Make_with_backend (Backend : Backend) = struct
     let delete ?ctx ?headers uri =
       let%lwt (response, body) = C.delete ?ctx ?headers uri in
       match Cohttp.Response.(response.status) with
-      | #Cohttp.Code.success_status -> Response.make response body
+      | #Cohttp.Code.success_status -> make_response response body
       | status ->
         let%lwt body = Cohttp_lwt.Body.to_string body in
         error_lwt (Unhandled_response_code { uri; status; body })
@@ -289,7 +296,7 @@ module Make_with_backend (Backend : Backend) = struct
     let patch ?ctx ?headers ?body uri =
       let%lwt (response, body) = C.patch ?ctx ?headers ?body uri in
       match Cohttp.Response.(response.status) with
-      | #Cohttp.Code.success_status -> Response.make response body
+      | #Cohttp.Code.success_status -> make_response response body
       | status ->
         let%lwt body = Cohttp_lwt.Body.to_string body in
         error_lwt (Unhandled_response_code { uri; status; body })
@@ -303,7 +310,7 @@ module Make_with_backend (Backend : Backend) = struct
     let post ?ctx ?headers ?body uri =
       let%lwt (response, body) = C.post ?ctx ?headers ?body uri in
       match Cohttp.Response.(response.status) with
-      | #Cohttp.Code.success_status -> Response.make response body
+      | #Cohttp.Code.success_status -> make_response response body
       | status ->
         let%lwt body = Cohttp_lwt.Body.to_string body in
         error_lwt (Unhandled_response_code { uri; status; body })
@@ -316,7 +323,7 @@ module Make_with_backend (Backend : Backend) = struct
     let put ?ctx ?headers ?body uri =
       let%lwt (response, body) = C.put ?ctx ?headers ?body uri in
       match Cohttp.Response.(response.status) with
-      | #Cohttp.Code.success_status -> Response.make response body
+      | #Cohttp.Code.success_status -> make_response response body
       | status ->
         let%lwt body = Cohttp_lwt.Body.to_string body in
         error_lwt (Unhandled_response_code { uri; status; body })
@@ -329,7 +336,7 @@ module Make_with_backend (Backend : Backend) = struct
     let post_form ?ctx ?headers ~params uri =
       let%lwt (response, body) = C.post_form ?ctx ?headers ~params uri in
       match Cohttp.Response.(response.status) with
-      | #Cohttp.Code.success_status -> Response.make response body
+      | #Cohttp.Code.success_status -> make_response response body
       | status ->
         let%lwt body = Cohttp_lwt.Body.to_string body in
         error_lwt (Unhandled_response_code { uri; status; body })
@@ -343,7 +350,7 @@ module Make_with_backend (Backend : Backend) = struct
     let call ?ctx ?headers ?body meth uri =
       let%lwt (response, body) = C.call ?ctx ?headers ?body meth uri in
       match Cohttp.Response.(response.status) with
-      | #Cohttp.Code.success_status -> Response.make response body
+      | #Cohttp.Code.success_status -> make_response response body
       | status ->
         let%lwt body = Cohttp_lwt.Body.to_string body in
         error_lwt (Unhandled_response_code { uri; status; body })

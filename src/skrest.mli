@@ -145,8 +145,9 @@ module Make_with_backend (Backend : Backend) : sig
     (** [post_form ?ctx ?headers ~params uri] returns the result of a form
         [POST] request to [uri].
 
-        @param params specifies a list of [(key, value)] pairs which represent
-        the form elements to send. *)
+        @param params
+          specifies a list of [(key, value)] pairs which represent the form
+          elements to send. *)
 
     val call :
       ?ctx:ctx ->
