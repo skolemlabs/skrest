@@ -15,7 +15,7 @@
 
 (generate_opam_files true)
 
-(version 1.2.0)
+(version 1.2.1)
 
 (package
  (name skrest)
@@ -41,7 +41,6 @@
     :with-test))
   (rresult
    (>= 0.6.0))
-  (logs (>= 0.6.0))
   (uri
    (>= 3.0.0))))
 
