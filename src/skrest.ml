@@ -225,6 +225,12 @@ module Make_with_backend (Backend : Backend) = struct
       (Uri.t -> response result Lwt.t) ->
       unit ->
       response result Lwt.t
+
+    val retry_f :
+      f:(float -> float option) ->
+      Uri.t ->
+      (Uri.t -> response result Lwt.t) ->
+      response result Lwt.t
   end
 
   module Make_with_response (Response : Response) :
@@ -372,6 +378,20 @@ module Make_with_backend (Backend : Backend) = struct
           | Error _ -> Backend.sleep wait_period >>= fun _ -> helper (retry + 1)
       in
       helper 0
+
+    let retry_f ~f uri c =
+      let open Lwt in
+      let rec helper wait =
+        Backend.sleep wait >>= fun () ->
+        c uri >>= function
+        | Ok _ as ok -> Lwt.return ok
+        | Error _ as e ->
+          ( match f wait with
+          | Some wait -> helper wait
+          | None -> Lwt.return e
+          )
+      in
+      helper 0.
   end
 
   module String_response_body = Make_with_response (String_response)
