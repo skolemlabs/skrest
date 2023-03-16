@@ -21,6 +21,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@master
 
+      - name: "Use NodeJS v16"
+        uses: actions/setup-node@v3
+        with:
+         node-version: 16
+
       - name: Use OCaml ${{ matrix.ocaml-version }}
         uses: avsm/setup-ocaml@v2
         with:
