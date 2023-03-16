@@ -11,3 +11,6 @@ You can find the changelog here: [Changelog](https://github.com/skolemlabs/skres
 ## Differences from ezrest
 - APM integration
 - A retry function has been added to the `Skrest` module.
+
+## Acknowledgements
+- `tests/XMLHTTPRequest.js` is vendored from [driverdan/node-XMLHTTPRequest](https://github.com/driverdan/node-XMLHttpRequest), an MIT licensed project.
