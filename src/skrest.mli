@@ -55,12 +55,12 @@ module type Backend = sig
   module Client : Cohttp_lwt.S.Client
 end
 
-(** Functor to create implemenations based on a backend. * i.e.
-    cohttp_lwt_jsoo/cohttp_lwt_unix *)
-module Make_with_backend (Backend : Backend) : sig
-  type nonrec error = Backend.native_error error
-  type nonrec 'a result = ('a, Backend.native_error) result
-  type ctx = Backend.Client.ctx
+module type Impl = sig
+  type native_error
+
+  type nonrec error = native_error error
+  type nonrec 'a result = ('a, native_error) result
+  type ctx
 
   (** {1 Streaming vs eagerly-consumed bodies} *)
   module type S = sig
@@ -202,3 +202,10 @@ module Make_with_backend (Backend : Backend) : sig
   val open_error : 'a result -> ('a, [> `Skrest of error ]) Stdlib.result
   val error_to_msg : 'a result -> ('a, [> `Msg of string ]) Stdlib.result
 end
+
+(** Functor to create implemenations based on a backend. * i.e.
+    cohttp_lwt_jsoo/cohttp_lwt_unix *)
+module Make_with_backend (Backend : Backend) :
+  Impl
+    with type native_error = Backend.native_error
+     and type ctx = Backend.Client.ctx
