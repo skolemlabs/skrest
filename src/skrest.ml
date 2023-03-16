@@ -120,8 +120,134 @@ let wrap_error ~sleep ~handle_exn ~timeout f x =
   try%lwt Lwt.pick [ f x; timeout ] with
   | exn -> error_lwt @@ handle_exn exn
 
-module Make_with_backend (Backend : Backend) = struct
-  type nonrec error = Backend.native_error error
+module type Fetch = sig
+  type ctx
+  type response
+  type native_error
+
+  val head :
+    ?ctx:ctx ->
+    ?headers:Cohttp.Header.t ->
+    ?timeout:float ->
+    Uri.t ->
+    (Cohttp.Response.t, native_error) result Lwt.t
+
+  val get :
+    ?ctx:ctx ->
+    ?headers:Cohttp.Header.t ->
+    ?timeout:float ->
+    follow:int ->
+    Uri.t ->
+    (response, native_error) result Lwt.t
+
+  val delete :
+    ?ctx:ctx ->
+    ?headers:Cohttp.Header.t ->
+    ?timeout:float ->
+    Uri.t ->
+    (response, native_error) result Lwt.t
+
+  val patch :
+    ?ctx:ctx ->
+    ?headers:Cohttp.Header.t ->
+    ?timeout:float ->
+    ?body:Cohttp_lwt.Body.t ->
+    Uri.t ->
+    (response, native_error) result Lwt.t
+
+  val post :
+    ?ctx:ctx ->
+    ?headers:Cohttp.Header.t ->
+    ?timeout:float ->
+    ?body:Cohttp_lwt.Body.t ->
+    Uri.t ->
+    (response, native_error) result Lwt.t
+
+  val put :
+    ?ctx:ctx ->
+    ?headers:Cohttp.Header.t ->
+    ?timeout:float ->
+    ?body:Cohttp_lwt.Body.t ->
+    Uri.t ->
+    (response, native_error) result Lwt.t
+
+  val post_form :
+    ?ctx:ctx ->
+    ?headers:Cohttp.Header.t ->
+    ?timeout:float ->
+    params:(string * string list) list ->
+    Uri.t ->
+    (response, native_error) result Lwt.t
+
+  val call :
+    ?ctx:ctx ->
+    ?headers:Cohttp.Header.t ->
+    ?timeout:float ->
+    ?body:Cohttp_lwt.Body.t ->
+    Cohttp.Code.meth ->
+    Uri.t ->
+    (response, native_error) result Lwt.t
+end
+
+module type Impl = sig
+  type native_error
+
+  type nonrec error = native_error error
+  type nonrec 'a result = ('a, native_error) result
+  type ctx
+
+  module Make_with_response (Response : Response) :
+    Fetch
+      with type response = Response.response
+       and type native_error = native_error
+       and type ctx = ctx
+
+  val retry :
+    ?wait:float ->
+    retries:int ->
+    Uri.t ->
+    (Uri.t -> 'response result Lwt.t) ->
+    unit ->
+    'response result Lwt.t
+
+  val retry_f :
+    f:(float -> float option) ->
+    Uri.t ->
+    (Uri.t -> 'response result Lwt.t) ->
+    'response result Lwt.t
+
+  module String_response_body :
+    Fetch
+      with type response = string
+      with type native_error = native_error
+       and type ctx = ctx
+  module String_t_response_body :
+    Fetch
+      with type response = string t
+      with type native_error = native_error
+       and type ctx = ctx
+  module Drain_t_response_body :
+    Fetch
+      with type response = unit t
+      with type native_error = native_error
+       and type ctx = ctx
+  module Stream_t_response_body :
+    Fetch
+      with type response = Cohttp_lwt.Body.t t
+      with type native_error = native_error
+       and type ctx = ctx
+
+  val pp_error : Format.formatter -> [< `Skrest of error ] -> unit
+  val open_error : 'a result -> ('a, [> `Skrest of error ]) Stdlib.result
+  val error_to_msg : 'a result -> ('a, [> `Msg of string ]) Stdlib.result
+end
+
+module Make_with_backend (Backend : Backend) :
+  Impl
+    with type native_error = Backend.native_error
+     and type ctx = Backend.Client.ctx = struct
+  type native_error = Backend.native_error
+  type nonrec error = native_error error
   type nonrec 'a result = ('a, Backend.native_error) result
 
   module C = Backend.Client
@@ -152,90 +278,14 @@ module Make_with_backend (Backend : Backend) = struct
     | Ok _ as o -> o
     | Error err -> Error (`Msg (Fmt.str "%a" pp_error err))
 
-  module type S = sig
-    type response
-
-    val head :
-      ?ctx:ctx ->
-      ?headers:Cohttp.Header.t ->
-      ?timeout:float ->
-      Uri.t ->
-      Cohttp.Response.t result Lwt.t
-
-    val get :
-      ?ctx:ctx ->
-      ?headers:Cohttp.Header.t ->
-      ?timeout:float ->
-      follow:int ->
-      Uri.t ->
-      response result Lwt.t
-
-    val delete :
-      ?ctx:ctx ->
-      ?headers:Cohttp.Header.t ->
-      ?timeout:float ->
-      Uri.t ->
-      response result Lwt.t
-
-    val patch :
-      ?ctx:ctx ->
-      ?headers:Cohttp.Header.t ->
-      ?timeout:float ->
-      ?body:Cohttp_lwt.Body.t ->
-      Uri.t ->
-      response result Lwt.t
-
-    val post :
-      ?ctx:ctx ->
-      ?headers:Cohttp.Header.t ->
-      ?timeout:float ->
-      ?body:Cohttp_lwt.Body.t ->
-      Uri.t ->
-      response result Lwt.t
-
-    val put :
-      ?ctx:ctx ->
-      ?headers:Cohttp.Header.t ->
-      ?timeout:float ->
-      ?body:Cohttp_lwt.Body.t ->
-      Uri.t ->
-      response result Lwt.t
-
-    val post_form :
-      ?ctx:ctx ->
-      ?headers:Cohttp.Header.t ->
-      ?timeout:float ->
-      params:(string * string list) list ->
-      Uri.t ->
-      response result Lwt.t
-
-    val call :
-      ?ctx:ctx ->
-      ?headers:Cohttp.Header.t ->
-      ?timeout:float ->
-      ?body:Cohttp_lwt.Body.t ->
-      Cohttp.Code.meth ->
-      Uri.t ->
-      response result Lwt.t
-
-    val retry :
-      ?wait:float ->
-      retries:int ->
-      Uri.t ->
-      (Uri.t -> response result Lwt.t) ->
-      unit ->
-      response result Lwt.t
-
-    val retry_f :
-      f:(float -> float option) ->
-      Uri.t ->
-      (Uri.t -> response result Lwt.t) ->
-      response result Lwt.t
-  end
-
   module Make_with_response (Response : Response) :
-    S with type response = Response.response = struct
+    Fetch
+      with type response = Response.response
+       and type native_error = native_error
+       and type ctx = ctx = struct
     type response = Response.response
+    type nonrec ctx = ctx
+    type nonrec native_error = native_error
 
     let make_response r b =
       let promise = Response.make r b in
@@ -366,33 +416,33 @@ module Make_with_backend (Backend : Backend) = struct
       wrap_error ~sleep:Backend.sleep ~handle_exn:Backend.handle_exn ~timeout
         (call ?ctx ~headers ?body meth)
         uri
-
-    let retry ?wait:(wait_period = 0.) ~retries uri f () =
-      let open Lwt in
-      let rec helper retry =
-        if retry = retries then
-          f uri
-        else
-          f uri >>= function
-          | Ok _ as ok -> Lwt.return ok
-          | Error _ -> Backend.sleep wait_period >>= fun _ -> helper (retry + 1)
-      in
-      helper 0
-
-    let retry_f ~f uri c =
-      let open Lwt in
-      let rec helper wait =
-        Backend.sleep wait >>= fun () ->
-        c uri >>= function
-        | Ok _ as ok -> Lwt.return ok
-        | Error _ as e ->
-          ( match f wait with
-          | Some wait -> helper wait
-          | None -> Lwt.return e
-          )
-      in
-      helper 0.
   end
+
+  let retry_f ~f uri c =
+    let open Lwt in
+    let rec helper wait =
+      Backend.sleep wait >>= fun () ->
+      c uri >>= function
+      | Ok _ as ok -> Lwt.return ok
+      | Error _ as e ->
+        ( match f wait with
+        | Some wait -> helper wait
+        | None -> Lwt.return e
+        )
+    in
+    helper 0.
+
+  let retry ?wait:(wait_period = 0.) ~retries uri f () =
+    let open Lwt in
+    let rec helper retry =
+      if retry = retries then
+        f uri
+      else
+        f uri >>= function
+        | Ok _ as ok -> Lwt.return ok
+        | Error _ -> Backend.sleep wait_period >>= fun _ -> helper (retry + 1)
+    in
+    helper 0
 
   module String_response_body = Make_with_response (String_response)
   module String_t_response_body = Make_with_response (String_t_response)

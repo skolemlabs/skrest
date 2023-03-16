@@ -1,0 +1,22 @@
+(library
+ (name skrest_common_tests)
+ (modules skrest_common_tests)
+ (libraries tezt.core skrest yojson))
+
+(test
+ (name skrest_unix_test)
+ (modules skrest_unix_test)
+ (modes native)
+ (libraries skrest_common_tests tezt skrest_unix))
+
+(executable
+ (name skrest_js_test)
+ (modules skrest_js_test)
+ (modes js)
+ (libraries skrest_common_tests tezt.js skrest_js))
+
+(rule
+ (alias runtest)
+ (deps skrest_js_test.js XMLHttpRequest.js skrest_js_test.bc.js)
+ (action
+  (run node skrest_js_test.js)))

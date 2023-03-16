@@ -1,9 +1,9 @@
 open Js_of_ocaml
 
 module Backend : Skrest.Backend = struct
-  type native_error = Js.error Js.t
+  type native_error = Js_error.t
 
-  let pp_native_error = Fmt.of_to_string Js.string_of_error
+  let pp_native_error = Fmt.of_to_string Js_error.to_string
 
   let sleep = Js_of_ocaml_lwt.Lwt_js.sleep
 
@@ -12,7 +12,7 @@ module Backend : Skrest.Backend = struct
     | None -> Cohttp.Header.init ()
 
   let handle_exn = function
-    | Js.Error err ->
+    | Js_error.Exn err ->
       let message = Fmt.str "%a" pp_native_error err in
       Skrest.Connection_error (err, message)
     | exn ->

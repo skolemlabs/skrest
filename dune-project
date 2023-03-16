@@ -39,6 +39,10 @@
    (and
     (>= 1.7.0)
     :with-test))
+  (tezt
+    (and
+      (>= 3.0.0)
+      :with-test))
   (rresult
    (>= 0.6.0))
   (uri
@@ -61,6 +65,7 @@
  (depends
   (ocaml
    (>= 4.08.0))
+  (js_of_ocaml (>= 4.0.0))
   (cohttp-lwt-jsoo
    (>= 2.5.4))
   (skrest (= :version))))
