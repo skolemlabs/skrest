@@ -175,6 +175,16 @@ module Make_with_backend (Backend : Backend) : sig
         returns [Error(_)], the thread sleeps for [wait], then it is called
         again unless the number of times that [f] has been tried is equal to
         [retries]. If [f] returns [Ok(_)], the value is returned. *)
+
+    val retry_f :
+      f:(float -> float option) ->
+      Uri.t ->
+      (Uri.t -> response result Lwt.t) ->
+      response result Lwt.t
+    (** [retry ~f uri c] retries [c] until [f] returns [None]. If [c] returns
+        [Error _], the thread sleeps for [f prev_wait] if it is [Some wait]. If
+        [c] returns [Ok _], the value is returned. This is useful for
+        implementing exponential backoff.*)
   end
 
   (** Functor for creating request engines with parameterized response types *)
