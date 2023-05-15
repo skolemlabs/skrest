@@ -28,28 +28,63 @@ include Backend_impl
 include Backend_impl.String_response_body
 
 module Apm = struct
-  let name ~methd ~uri = Fmt.str "%s: %s" methd (Uri.to_string uri)
+  open Backend_impl.String_t_response_body
+  open struct
+    let name ~meth_str ~uri =
+      Fmt.(
+        str "%s: %a" meth_str (option ~none:(any "<none>") string) (Uri.host uri)
+      )
+
+    let get_response v = v.Skrest.response
+    let get_body v = v.Skrest.body
+  end
 
   let wrap
       ?(apm : Skapm.Span.parent option)
       ?(apm_tags : Skapm.Tag.t list option)
-      ~name
-      ~subtype
-      ~action
+      ~get_response
+      ~get_body
+      ~meth
       f
-      x =
+      uri =
     let open Lwt in
-    match apm with
-    | Some parent ->
-      let context = Skapm.Span.Context.make ?tags:apm_tags () in
-      let span =
-        Skapm.Span.make_span ~context ~parent ~name ~type_:"Web Request"
-          ~subtype ~action ()
-      in
-      f x >|= fun res ->
-      let (_ : Skapm.Span.result) = Skapm.Span.finalize_and_send span in
-      res
-    | None -> f x
+    let r =
+      match apm with
+      | Some parent ->
+        let meth_str = Cohttp.Code.string_of_method meth in
+        let action =
+          Fmt.str "Skrest_unix#%s" (String.lowercase_ascii meth_str)
+        in
+        let name = name ~meth_str ~uri in
+        let span =
+          Skapm.Span.make_span ~parent ~name ~type_:"Web Request"
+            ~subtype:meth_str ~action ()
+        in
+        f uri >|= fun res ->
+        let context =
+          let open Skapm.Span.Context in
+          let p = make ?tags:apm_tags in
+          match res with
+          | Ok skresp ->
+            let resp = get_response skresp in
+            let response =
+              make_response
+                ~headers:
+                  (resp |> Cohttp.Response.headers |> Cohttp.Header.to_list)
+                ~status_code:(resp |> Cohttp.Response.status)
+                ()
+            in
+            let http = make_http ~meth ~url:uri ~response () in
+            p ~http ()
+          | Error _ -> p ()
+        in
+        let (_ : Skapm.Span.result) =
+          Skapm.Span.finalize_and_send ~context span
+        in
+        res
+      | None -> f uri
+    in
+    Lwt_result.map get_body r
 
   let head
       ?(ctx : ctx option)
@@ -59,8 +94,8 @@ module Apm = struct
       ?(apm_tags : Skapm.Tag.t list option)
       (uri : Uri.t) =
     let run = head ?ctx ?headers ?timeout in
-    wrap ?apm ?apm_tags ~name:(name ~methd:"HEAD" ~uri) ~subtype:"HEAD"
-      ~action:"Skrest_unix#head" run uri
+    wrap ?apm ?apm_tags ~meth:`HEAD ~get_body:Fun.id ~get_response:Fun.id run
+      uri
 
   let get
       ?(ctx : ctx option)
@@ -71,8 +106,7 @@ module Apm = struct
       ~(follow : int)
       (uri : Uri.t) =
     let run = get ?ctx ?headers ?timeout ~follow in
-    wrap ?apm ?apm_tags ~name:(name ~methd:"GET" ~uri) ~subtype:"GET"
-      ~action:"Skrest_unix#get" run uri
+    wrap ?apm ?apm_tags ~get_body ~get_response ~meth:`GET run uri
 
   let delete
       ?(ctx : ctx option)
@@ -82,9 +116,7 @@ module Apm = struct
       ?(apm_tags : Skapm.Tag.t list option)
       (uri : Uri.t) =
     let run = delete ?ctx ?headers ?timeout in
-    wrap ?apm ?apm_tags
-      ~name:(name ~methd:"DELETE" ~uri)
-      ~subtype:"DELETE" ~action:"Skrest_unix#delete" run uri
+    wrap ?apm ?apm_tags ~get_body ~get_response ~meth:`DELETE run uri
 
   let patch
       ?(ctx : ctx option)
@@ -95,8 +127,7 @@ module Apm = struct
       ?(apm_tags : Skapm.Tag.t list option)
       (uri : Uri.t) =
     let run = patch ?ctx ?headers ?timeout ?body in
-    wrap ?apm ?apm_tags ~name:(name ~methd:"PATCH" ~uri) ~subtype:"PATCH"
-      ~action:"Skrest_unix#patch" run uri
+    wrap ?apm ?apm_tags ~get_body ~get_response ~meth:`PATCH run uri
 
   let post
       ?(ctx : ctx option)
@@ -107,8 +138,7 @@ module Apm = struct
       ?(apm_tags : Skapm.Tag.t list option)
       (uri : Uri.t) =
     let run = post ?ctx ?headers ?timeout ?body in
-    wrap ?apm ?apm_tags ~name:(name ~methd:"POST" ~uri) ~subtype:"POST"
-      ~action:"Skrest_unix#post" run uri
+    wrap ?apm ?apm_tags ~get_body ~get_response ~meth:`POST run uri
 
   let post_form
       ?(ctx : ctx option)
@@ -119,8 +149,7 @@ module Apm = struct
       ~(params : (string * string list) list)
       (uri : Uri.t) =
     let run = post_form ?ctx ?headers ?timeout ~params in
-    wrap ?apm ?apm_tags ~name:(name ~methd:"POST" ~uri) ~subtype:"POST"
-      ~action:"Skrest_unix#post_form" run uri
+    wrap ?apm ?apm_tags ~get_body ~get_response ~meth:`POST run uri
 
   let call
       ?(ctx : ctx option)
@@ -129,11 +158,8 @@ module Apm = struct
       ?(body : Cohttp_lwt.Body.t option)
       ?(apm : Skapm.Span.parent option)
       ?(apm_tags : Skapm.Tag.t list option)
-      (methd : Cohttp.Code.meth)
+      (meth : Cohttp.Code.meth)
       (uri : Uri.t) =
-    let run = call ?ctx ?headers ?timeout ?body methd in
-    let methd_str = Cohttp.Code.string_of_method methd in
-    wrap ?apm ?apm_tags
-      ~name:(name ~methd:methd_str ~uri)
-      ~subtype:methd_str ~action:"Skrest_unix#call" run uri
+    let run = call ?ctx ?headers ?timeout ?body meth in
+    wrap ?apm ?apm_tags ~get_body ~get_response ~meth run uri
 end
