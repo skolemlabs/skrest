@@ -52,7 +52,7 @@
  (name skrest_unix)
  (synopsis "Simple wrapper on top of the Cohttp Unix client")
  (depends
-  skapm
+  (skapm (and (>= 1.6.0) (< 1.7.0)))
   (ocaml
    (>= 4.08.0))
   (cohttp-lwt-unix
