@@ -54,30 +54,31 @@ module Make (M : Skrest.Impl) = struct
     | Error e -> Test.fail "headers request failed with %a" pp_err e
 
   let () =
-    Test.register ~__FILE__ ~title:"retry_f"
-      ~tags:[ "get"; "retry_f" ]
+    Test.register ~__FILE__ ~title:"retry_f" ~tags:[ "get"; "retry_f" ]
     @@ fun () ->
-      let uri = Uri.with_path httpbin "/status/500" in
-      let tried = ref 0 in
-      let waited = ref 0. in
-      let f' = function
+    let uri = Uri.with_path httpbin "/status/500" in
+    let tried = ref 0 in
+    let waited = ref 0. in
+    let f' = function
       | 0. -> Some 0.01
       | 0.01 -> Some 0.02
       | 0.02 -> Some 0.03
       | _ -> None
-      in
-      let f d = 
-        let w = f' d in
-        incr tried;
-        Option.iter (fun w -> waited := !waited +. w) w;
-        w
-      in
-      let* result = M.retry_f ~f uri (Skrest_impl.get ~follow:0) in
-      match result with
-      | Ok _ -> Test.fail ~__LOC__ "expected [Error 500], got [Ok _]"
-      | Error _ -> 
-          if !tried <> 4 || !waited <> 0.06 then
-            Test.fail ~__LOC__ "failed less than 4 times (%d) or waited less than 0.06s (%f)" !tried !waited
-          else
-            unit
+    in
+    let f d =
+      let w = f' d in
+      incr tried;
+      Option.iter (fun w -> waited := !waited +. w) w;
+      w
+    in
+    let* result = M.retry_f ~f uri (Skrest_impl.get ~follow:0) in
+    match result with
+    | Ok _ -> Test.fail ~__LOC__ "expected [Error 500], got [Ok _]"
+    | Error _ ->
+      if !tried <> 4 || !waited <> 0.06 then
+        Test.fail ~__LOC__
+          "failed less than 4 times (%d) or waited less than 0.06s (%f)" !tried
+          !waited
+      else
+        unit
 end
