@@ -19,7 +19,7 @@ jobs:
     
     services:
       httpbin:
-        image: kennethreitz:httpbin
+        image: kennethreitz/httpbin
         ports:
           - 80:8700
 
