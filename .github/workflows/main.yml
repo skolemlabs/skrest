@@ -16,6 +16,15 @@ jobs:
           - 4.12.1
 
     runs-on: ${{ matrix.os }}
+    
+    services:
+      httpbin:
+        image: kennethreitz/httpbin
+        ports:
+          - 8700:80
+
+    env:
+      HTTPBIN: http://localhost:8700
 
     steps:
       - name: Checkout code
@@ -33,7 +42,7 @@ jobs:
           opam-depext: false
           opam-pin: false
 
-      - run: opam pin add skapm.dev -n https://github.com/skolemlabs/skapm.git
+      - run: opam pin add skapm.1.6.0 -n https://github.com/skolemlabs/skapm.git#1.6.0
       - run: opam pin add skrest.dev -n .
       - run: opam pin add skrest_js.dev -n .
       - run: opam pin add skrest_unix.dev -n .
