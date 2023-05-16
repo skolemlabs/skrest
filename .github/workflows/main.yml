@@ -21,7 +21,7 @@ jobs:
       httpbin:
         image: kennethreitz/httpbin
         ports:
-          - 80:8700
+          - 8700:80
 
     env:
       HTTPBIN: http://localhost:8700
