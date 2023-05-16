@@ -16,6 +16,15 @@ jobs:
           - 4.12.1
 
     runs-on: ${{ matrix.os }}
+    
+    services:
+      httpbin:
+        image: kennethreitz:httpbin
+        ports:
+          - 80:8700
+
+    env:
+      HTTPBIN: http://localhost:8700
 
     steps:
       - name: Checkout code
