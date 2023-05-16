@@ -5,7 +5,7 @@ module J_util = Yojson.Safe.Util
 
 let ( let* ) = Lwt.bind
 
-let httpbin = Uri.of_string "http://httpbin.org"
+let httpbin = Option.(value ~default:(Uri.of_string "http://httpbin.org") (map Uri.of_string (Sys.getenv_opt "HTTPBIN")))
 let pp_json = Yojson.Safe.pretty_print ~std:false
 
 module Make (M : Skrest.Impl) = struct
